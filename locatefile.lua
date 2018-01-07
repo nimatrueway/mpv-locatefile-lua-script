@@ -6,7 +6,10 @@ function GetDirectory(url)
   return url:match("^(.+)/[^/]+$")
 end
 
+-- for ubuntu
 file_browser_cmd = "nautilus '$path'"
+-- for macos
+-- file_browser_cmd = "open -a Finder '$path'"
 
 --// handle "locate-current-file" function triggered by a key in "input.conf"
 mp.register_script_message("locate-current-file", function()

@@ -35,21 +35,19 @@ end
 
 --// handle "locate-current-file" function triggered by a key in "input.conf"
 mp.register_script_message("locate-current-file", function()
-	file_browser_cmd = file_browser_linux_cmd
-	local filepath = mp.get_property("path")
-
-	if is_windows() then
-		file_browser_cmd = file_browser_windows_cmd
-		filepath = filepath:gsub("/", "\\")
-	elseif is_macos() then
-		file_browser_cmd = file_browser_macos_cmd
-	else
-		file_browser_cmd = file_browser_linux_cmd
-	end	
-
-	if filepath ~= nil then
-		cmd = file_browser_cmd:gsub("$path", filepath)
-		mp.osd_message(cmd)
-		os.execute(cmd)
-	end
+  file_browser_cmd = file_browser_linux_cmd
+  local filepath = mp.get_property("path")
+  if is_windows() then
+    file_browser_cmd = file_browser_windows_cmd
+    filepath = filepath:gsub("/", "\\")
+  elseif is_macos() then
+    file_browser_cmd = file_browser_macos_cmd
+  else
+    file_browser_cmd = file_browser_linux_cmd
+  end	
+  if filepath ~= nil then
+    cmd = file_browser_cmd:gsub("$path", filepath)
+    mp.osd_message(cmd)
+    os.execute(cmd)
+  end
 end)

@@ -7,5 +7,4 @@
 ```    
 Alt+o script_message locate-current-file
 ```
-###### Works on Ubuntu
-* PRs for other OS are welcome.
+###### Tested on Ubuntu, macOS 10.12+, Windows 10

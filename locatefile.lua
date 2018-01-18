@@ -16,7 +16,7 @@ file_browser_windows_cmd = "explorer /select,\"$path\""
 --// check if macos
 function is_macos()
   local homedir = os.getenv("HOME")
-  if homedir ~= nil and homedir.sub(1, 6) ~= "/Users" then
+  if homedir ~= nil and homedir.sub(1, 6) == "/Users" then
     return true
   else
     return false

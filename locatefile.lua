@@ -7,7 +7,7 @@ function GetDirectory(url)
 end
 
 -- for ubuntu
-file_browser_linux_cmd = "nautilus '$path'"
+file_browser_linux_cmd = "nohup nautilus --select '$path' &"
 -- for macos
 file_browser_macos_cmd = "open -a Finder '$path'"
 -- for windows
@@ -47,7 +47,7 @@ mp.register_script_message("locate-current-file", function()
   end	
   if filepath ~= nil then
     cmd = file_browser_cmd:gsub("$path", filepath)
-    mp.osd_message(cmd)
+    mp.osd_message('Browse ' .. filepath)
     os.execute(cmd)
   end
 end)

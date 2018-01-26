@@ -7,9 +7,9 @@ function GetDirectory(url)
 end
 
 -- for ubuntu
-file_browser_linux_cmd = "nohup nautilus --select '$path' &"
+file_browser_linux_cmd = "nohup nautilus --select \"$path\" &"
 -- for macos
-file_browser_macos_cmd = "open -a Finder '$path'"
+file_browser_macos_cmd = "open -a Finder \"$path\""
 -- for windows
 file_browser_windows_cmd = "explorer /select,\"$path\""
 

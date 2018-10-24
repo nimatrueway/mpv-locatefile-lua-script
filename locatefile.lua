@@ -7,7 +7,8 @@ function GetDirectory(url)
 end
 
 -- for ubuntu
-file_browser_linux_cmd = "nohup nautilus --select \"$path\" &"
+-- file_browser_linux_cmd = "xdg-open \"$dir\""
+file_browser_linux_cmd = "dbus-send --print-reply --dest=org.freedesktop.FileManager1 /org/freedesktop/FileManager1 org.freedesktop.FileManager1.ShowItems array:string:\"file:$path\" string:\"\""
 -- for macos
 file_browser_macos_cmd_osascript_content = 'tell application "Finder"' .. '\n' .. 'set frontmost to true' .. '\n' .. 'reveal (POSIX file "$path")' .. '\n' .. 'end tell' .. '\n'
 file_browser_macos_cmd = 'osascript "$osascript_file"'
@@ -43,10 +44,16 @@ function create_temp_file(content)
   return tmp_filename
 end
 
+--// create temporary script
+function GetDirectory(url)
+  return url:match("^(.*)/[^/]+$")
+end
+
 --// handle "locate-current-file" function triggered by a key in "input.conf"
 mp.register_script_message("locate-current-file", function()
   file_browser_cmd = file_browser_linux_cmd
   local filepath = mp.get_property("path")
+  local filedir = GetDirectory(filepath)
   if is_windows() then
     file_browser_cmd = file_browser_windows_cmd
     filepath = filepath:gsub("/", "\\")
@@ -58,6 +65,7 @@ mp.register_script_message("locate-current-file", function()
   end	
   if filepath ~= nil then
     cmd = file_browser_cmd:gsub("$path", filepath)
+    cmd = cmd:gsub("$dir", filedir)
     mp.osd_message('Browse \n' .. filepath)
     os.execute(cmd)
   end

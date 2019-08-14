@@ -55,6 +55,7 @@ mp.register_script_message("locate-current-file", function()
   local filepath = mp.get_property("path")
   local filedir = GetDirectory(filepath)
   if is_windows() then
+    filedir = mp.get_property("working-directory")
     file_browser_cmd = file_browser_windows_cmd
     filepath = filepath:gsub("/", "\\")
   elseif is_macos() then

@@ -1,19 +1,14 @@
---// Extract file dir from url
+utils = require 'mp.utils'
+
+--// Extract file name from full path
 function GetFileName(url)
   return url:match("^.+/([^/]+)$")
 end
+
+--// Extract directory from full path
 function GetDirectory(url)
   return url:match("^(.+)/[^/]+$")
 end
-
--- for ubuntu
--- file_browser_linux_cmd = "xdg-open \"$dir\""
-file_browser_linux_cmd = "dbus-send --print-reply --dest=org.freedesktop.FileManager1 /org/freedesktop/FileManager1 org.freedesktop.FileManager1.ShowItems array:string:\"file:$path\" string:\"\""
--- for macos
-file_browser_macos_cmd_osascript_content = 'tell application "Finder"' .. '\n' .. 'set frontmost to true' .. '\n' .. 'reveal (POSIX file "$path")' .. '\n' .. 'end tell' .. '\n'
-file_browser_macos_cmd = 'osascript "$osascript_file"'
--- for windows
-file_browser_windows_cmd = "explorer /select,\"$path\""
 
 --// check if macos
 function is_macos()
@@ -45,28 +40,36 @@ function create_temp_file(content)
 end
 
 --// create temporary script
-function GetDirectory(url)
+function get_directory(url)
   return url:match("^(.*)/[^/]+$")
+end
+
+------------------//-- locate functions --//--------------------
+
+function locate_windows(filepath)  
+  utils.subprocess_detached({args = {'explorer', '/select,' .. filepath:gsub('/', '\\')}})
+end
+
+function locate_macos(filepath)
+  local file_browser_macos_cmd_osascript_content = 'tell application "Finder"' .. '\n' .. 'set frontmost to true' .. '\n' .. 'reveal (POSIX file "' .. filepath .. '")' .. '\n' .. 'end tell' .. '\n'
+  local file_browser_macos_cmd = 'osascript ' .. create_temp_file(content)
+  os.execute(file_browser_macos_cmd)
+end
+
+function locate_linux(filepath)
+  dbus_cmd = 'dbus-send --print-reply --dest=org.freedesktop.FileManager1 /org/freedesktop/FileManager1 org.freedesktop.FileManager1.ShowItems array:string:"file:' .. filepath .. '" string:""'
+  os.execute(dbus_cmd)
 end
 
 --// handle "locate-current-file" function triggered by a key in "input.conf"
 mp.register_script_message("locate-current-file", function()
-  file_browser_cmd = file_browser_linux_cmd
   local filepath = mp.get_property("path")
-  local filedir = GetDirectory(filepath)
   if is_windows() then
-    file_browser_cmd = file_browser_windows_cmd
-    filepath = filepath:gsub("/", "\\")
+    locate_windows(filepath)
   elseif is_macos() then
-    local content = file_browser_macos_cmd_osascript_content:gsub("$path", filepath)    
-    file_browser_cmd = file_browser_macos_cmd:gsub("$osascript_file", create_temp_file(content))
+    locate_macos(filepath)
   else
-    file_browser_cmd = file_browser_linux_cmd
-  end	
-  if filepath ~= nil then
-    cmd = file_browser_cmd:gsub("$path", filepath)
-    cmd = cmd:gsub("$dir", filedir)
-    mp.osd_message('Browse \n' .. filepath)
-    os.execute(cmd)
+    locate_linux(filepath)
   end
+  mp.osd_message('Browse \n' .. filepath)
 end)

@@ -47,7 +47,7 @@ end
 ------------------//-- locate functions --//--------------------
 
 function locate_windows(filepath)  
-  utils.subprocess_detached({args = {'explorer', '/select,' .. filepath:gsub('/', '\\')}})
+  utils.subprocess_detached({args = {'cmd', '/c', 'explorer /select,' .. filepath:gsub('/', '\\') }})
 end
 
 function locate_macos(filepath)

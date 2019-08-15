@@ -2,8 +2,8 @@
 #### mpv-locatefile is a tiny lua script for mpv to open current media file in OS file browser
 
 ###### Usage
-* Copy `locatefile.lua` script to `~/.config/mpv/scripts/locatefile.lua`
-* Open key configuration file at `~/.config/mpv/input.conf` and map your desired keys to `locate-current-file` script message, for example:
+* Copy `locatefile.lua` script to (linux/macos) `~/.config/mpv/scripts/bookmarker.lua` (win) `%APPDATA%\mpv\scripts\bookmarker.lua`.
+* Open key configuration file at (linux/macos) `~/.config/mpv/input.conf` (win) `%APPDATA%\mpv\input.conf` and map your desired key to `locate-current-file` script_message, for example:
 ```    
 Alt+o script_message locate-current-file
 ```

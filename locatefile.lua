@@ -1,13 +1,33 @@
-utils = require 'mp.utils'
+-- DEBUGGING
+--
+-- Debug messages will be printed to stdout with mpv command line option
+-- `--msg-level='locatefile=debug'`
 
---// Extract file name from full path
+local msg = require('mp.msg')
+
+--// Extract file dir from url
 function GetFileName(url)
   return url:match("^.+/([^/]+)$")
 end
 
---// Extract directory from full path
-function GetDirectory(url)
-  return url:match("^(.+)/[^/]+$")
+-- for ubuntu
+url_browser_linux_cmd = "xdg-open \"$url\""
+file_browser_linux_cmd = "dbus-send --print-reply --dest=org.freedesktop.FileManager1 /org/freedesktop/FileManager1 org.freedesktop.FileManager1.ShowItems array:string:\"file:$path\" string:\"\""
+-- for macos
+url_browser_macos_cmd = "open \"$url\""
+file_browser_macos_cmd_osascript_content = 'tell application "Finder"' .. '\n' .. 'set frontmost to true' .. '\n' .. 'reveal (POSIX file "$path")' .. '\n' .. 'end tell' .. '\n'
+file_browser_macos_cmd = 'osascript "$osascript_file"path'
+-- for windows
+url_browser_windows_cmd = "explorer \"$url\""
+file_browser_windows_cmd = "explorer /select,\"$path\""
+
+--// check if it's a url/stream
+function is_url(path)
+  if path ~= nil and string.sub(path,1,4) == "http" then
+    return true
+  else
+    return false
+  end
 end
 
 --// check if macos
@@ -39,37 +59,46 @@ function create_temp_file(content)
   return tmp_filename
 end
 
---// create temporary script
-function get_directory(url)
-  return url:match("^(.*)/[^/]+$")
-end
-
-------------------//-- locate functions --//--------------------
-
-function locate_windows(filepath)  
-  utils.subprocess_detached({args = {'cmd', '/c', 'explorer /select,' .. filepath:gsub('/', '\\') }})
-end
-
-function locate_macos(filepath)
-  local file_browser_macos_cmd_osascript_content = 'tell application "Finder"' .. '\n' .. 'set frontmost to true' .. '\n' .. 'reveal (POSIX file "' .. filepath .. '")' .. '\n' .. 'end tell' .. '\n'
-  local file_browser_macos_cmd = 'osascript ' .. create_temp_file(content)
-  os.execute(file_browser_macos_cmd)
-end
-
-function locate_linux(filepath)
-  dbus_cmd = 'dbus-send --print-reply --dest=org.freedesktop.FileManager1 /org/freedesktop/FileManager1 org.freedesktop.FileManager1.ShowItems array:string:"file:' .. filepath .. '" string:""'
-  os.execute(dbus_cmd)
-end
-
 --// handle "locate-current-file" function triggered by a key in "input.conf"
 mp.register_script_message("locate-current-file", function()
-  local filepath = mp.get_property("path")
-  if is_windows() then
-    locate_windows(filepath)
-  elseif is_macos() then
-    locate_macos(filepath)
+  local path = mp.get_property("path")
+  if path ~= nil then
+    local cmd = ""
+    if is_url(path) then
+      msg.debug("Url detected '" .. path .. "', your OS web browser will be launched.")
+      if is_windows() then
+        msg.debug("Windows detected.")
+        cmd = url_browser_windows_cmd
+      elseif is_macos() then
+        msg.debug("macOS detected.")
+        cmd = url_browser_macos_cmd
+      else
+        msg.debug("Linux detected.")
+        cmd = url_browser_linux_cmd
+      end
+      cmd = cmd:gsub("$url", path)
+    else
+      msg.debug("File detected '" .. path .. "', your OS file browser will be launched.")
+      if is_windows() then
+        msg.debug("Windows detected.")
+        cmd = file_browser_windows_cmd
+        path = path:gsub("/", "\\")
+      elseif is_macos() then
+        msg.debug("macOS detected.")
+        local content = file_browser_macos_cmd_osascript_content:gsub("$path", path)
+        msg.debug("Creating a temporary apple-script to launch file-browser and locating the file.")
+        local tmpfile = create_temp_file(content)
+        cmd = file_browser_macos_cmd:gsub("$osascript_file", tmpfile)
+      else
+        msg.debug("Linux detected.")
+        cmd = file_browser_linux_cmd
+      end
+      cmd = cmd:gsub("$path", path)
+    end
+    msg.debug("Command to be executed: '" .. cmd .. "'")
+    mp.osd_message('Browse \n' .. path)
+    os.execute(cmd)
   else
-    locate_linux(filepath)
+    msg.debug("'path' property was empty, no media has been loaded.")
   end
-  mp.osd_message('Browse \n' .. filepath)
 end)

@@ -7,4 +7,12 @@
 ```    
 Alt+o script_message locate-current-file
 ```
+
+###### Bug reporting
+
+Feel free to create an issue in github, but make sure you provide me with enough information in the description:
+
+* Your operating system.
+* Run `mpv` with `--msg-level='locatefile=debug'` and attach your console output to the issue.
+
 ###### Tested on Ubuntu, macOS 10.12+, Windows 10

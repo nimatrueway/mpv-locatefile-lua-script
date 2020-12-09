@@ -15,8 +15,7 @@ url_browser_linux_cmd = "xdg-open \"$url\""
 file_browser_linux_cmd = "dbus-send --print-reply --dest=org.freedesktop.FileManager1 /org/freedesktop/FileManager1 org.freedesktop.FileManager1.ShowItems array:string:\"file:$path\" string:\"\""
 -- for macos
 url_browser_macos_cmd = "open \"$url\""
-file_browser_macos_cmd_osascript_content = 'tell application "Finder"' .. '\n' .. 'set frontmost to true' .. '\n' .. 'reveal (POSIX file "$path")' .. '\n' .. 'end tell' .. '\n'
-file_browser_macos_cmd = 'osascript "$osascript_file"path'
+file_browser_macos_cmd = "osascript -e 'tell application \"Finder\"' -e 'set frontmost to true' -e 'reveal (POSIX file \"$path\")' -e 'end tell'"
 -- for windows
 url_browser_windows_cmd = "explorer \"$url\""
 file_browser_windows_cmd = "explorer /select,\"$path\""
@@ -85,10 +84,7 @@ mp.register_script_message("locate-current-file", function()
         path = path:gsub("/", "\\")
       elseif is_macos() then
         msg.debug("macOS detected.")
-        local content = file_browser_macos_cmd_osascript_content:gsub("$path", path)
-        msg.debug("Creating a temporary apple-script to launch file-browser and locating the file.")
-        local tmpfile = create_temp_file(content)
-        cmd = file_browser_macos_cmd:gsub("$osascript_file", tmpfile)
+        cmd = file_browser_macos_cmd
       else
         msg.debug("Linux detected.")
         cmd = file_browser_linux_cmd

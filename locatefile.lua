@@ -86,7 +86,6 @@ function normalize(relative_path, base_dir)
   local parts = split_by_separator(full_path)
   local idx = 1
   repeat
-    msg.debug(mputils.format_json(parts))
     if parts[idx] == ".." then
       table.remove(parts, idx)
       table.remove(parts, idx - 1)

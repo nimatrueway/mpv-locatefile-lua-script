@@ -4,13 +4,18 @@
 -- `--msg-level='locatefile=debug'`
 
 local msg = require('mp.msg')
-local mputils = require('mp.utils')
+
+--// Extract file dir from url
+function GetFileName(url)
+  return url:match("^.+/([^/]+)$")
+end
 
 -- for ubuntu
 url_browser_linux_cmd = "xdg-open \"$url\""
 file_browser_linux_cmd = "dbus-send --print-reply --dest=org.freedesktop.FileManager1 /org/freedesktop/FileManager1 org.freedesktop.FileManager1.ShowItems array:string:\"file:$path\" string:\"\""
 -- for macos
 url_browser_macos_cmd = "open \"$url\""
+file_browser_macos_cmd = "osascript -e 'tell application \"Finder\"' -e 'set frontmost to true' -e 'reveal (POSIX file \"$path\")' -e 'end tell'"
 file_browser_macos_cmd = "open -a Finder -R \"$path\""
 -- for windows
 url_browser_windows_cmd = "explorer \"$url\""
@@ -54,54 +59,8 @@ function create_temp_file(content)
   return tmp_filename
 end
 
---// path separator stuffs
- function path_sep()
-  if is_windows() then
-    return "\\"
-  else
-    return "/"
-  end
-end
-function split_by_separator(filepath)
-  local t = {}
-  local part_pattern = string.format("([^%s]+)", path_sep())
-  for str in filepath:gmatch(part_pattern) do
-    table.insert(t, str)
-  end
-  return t
-end
-function path_root()
-  if path_sep() == "/" then
-    return "/"
-  else
-    return ""
-  end
-end
-
---// Extract file dir from url
-function normalize(relative_path, base_dir)
-  base_dir = base_dir or mputils.getcwd()
-  local full_path = mputils.join_path(base_dir, relative_path)
-
-  local parts = split_by_separator(full_path)
-  local idx = 1
-  repeat
-    if parts[idx] == ".." then
-      table.remove(parts, idx)
-      table.remove(parts, idx - 1)
-      idx = idx - 2
-    elseif parts[idx] == "." then
-      table.remove(parts, idx)
-      idx = idx - 1
-    end
-    idx = idx + 1
-  until idx > #parts
-
-  return path_root() .. table.concat(parts, path_sep())
-end
-
 --// handle "locate-current-file" function triggered by a key in "input.conf"
-mp.register_script_message("locate-current-file", function()
+function locate_current_file()
   local path = mp.get_property("path")
   if path ~= nil then
     local cmd = ""
@@ -131,7 +90,6 @@ mp.register_script_message("locate-current-file", function()
         msg.debug("Linux detected.")
         cmd = file_browser_linux_cmd
       end
-      path = normalize(path)
       cmd = cmd:gsub("$path", path)
     end
     msg.debug("Command to be executed: '" .. cmd .. "'")
@@ -140,4 +98,6 @@ mp.register_script_message("locate-current-file", function()
   else
     msg.debug("'path' property was empty, no media has been loaded.")
   end
-end)
+end
+
+mp.add_key_binding(nil, "locate-current-file", locate_current_file)

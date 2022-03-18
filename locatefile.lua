@@ -11,7 +11,7 @@ url_browser_linux_cmd = "xdg-open \"$url\""
 file_browser_linux_cmd = "dbus-send --print-reply --dest=org.freedesktop.FileManager1 /org/freedesktop/FileManager1 org.freedesktop.FileManager1.ShowItems array:string:\"file:$path\" string:\"\""
 -- for macos
 url_browser_macos_cmd = "open \"$url\""
-file_browser_macos_cmd = "osascript -e 'tell application \"Finder\"' -e 'set frontmost to true' -e 'reveal (POSIX file \"$path\")' -e 'end tell'"
+file_browser_macos_cmd = "open -a Finder -R \"$path\""
 -- for windows
 url_browser_windows_cmd = "explorer \"$url\""
 file_browser_windows_cmd = "explorer /select,\"$path\""

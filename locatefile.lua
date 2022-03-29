@@ -11,7 +11,8 @@ url_browser_linux_cmd = "xdg-open \"$url\""
 file_browser_linux_cmd = "dbus-send --print-reply --dest=org.freedesktop.FileManager1 /org/freedesktop/FileManager1 org.freedesktop.FileManager1.ShowItems array:string:\"file:$path\" string:\"\""
 -- for macos
 url_browser_macos_cmd = "open \"$url\""
-file_browser_macos_cmd = "osascript -e 'tell application \"Finder\"' -e 'set frontmost to true' -e 'reveal (POSIX file \"$path\")' -e 'end tell'"
+-- file_browser_macos_cmd = "osascript -e 'tell application \"Finder\"' -e 'set frontmost to true' -e 'reveal (POSIX file \"$path\")' -e 'end tell'"
+file_browser_macos_cmd = "open -a Finder -R \"$path\""
 -- for windows
 url_browser_windows_cmd = "explorer \"$url\""
 file_browser_windows_cmd = "explorer /select,\"$path\""
@@ -101,7 +102,7 @@ function normalize(relative_path, base_dir)
 end
 
 --// handle "locate-current-file" function triggered by a key in "input.conf"
-mp.register_script_message("locate-current-file", function()
+function locate_current_file()
   local path = mp.get_property("path")
   if path ~= nil then
     local cmd = ""
@@ -140,4 +141,6 @@ mp.register_script_message("locate-current-file", function()
   else
     msg.debug("'path' property was empty, no media has been loaded.")
   end
-end)
+end
+
+mp.add_key_binding(nil, "locate-current-file", locate_current_file)

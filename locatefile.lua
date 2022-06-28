@@ -137,7 +137,9 @@ function locate_current_file()
     end
     msg.debug("Command to be executed: '" .. cmd .. "'")
     mp.osd_message('Browse \n' .. path)
-    os.execute(cmd)
+    if is_windows() then
+      mp.command_native({name = "subprocess", capture_stdout = true, playback_only = false, args = { 'powershell', '-NoProfile', '-Command', cmd }})
+    else os.execute(cmd) end
   else
     msg.debug("'path' property was empty, no media has been loaded.")
   end
